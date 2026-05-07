@@ -51,15 +51,15 @@ cmd.exe /c "cd /d ""$PROJECT_DIR$"" && call gradlew.bat --quiet :logo_lsp:build 
 bash -c "cd $PROJECT_DIR$ && ./gradlew --quiet :logo_lsp:build :logo_lsp:installDist && ./logo_lsp/build/install/logo_lsp/bin/logo_lsp"
 ```
 
+> [!NOTE]
+> The plugin does not use the java version configured for the project in IntelliJ.
+> You might need to set the `JAVA_HOME` environment variable to the JDK used by IntelliJ.
+
 Map the server to the LOGO file type in the **File name patterns** tab:
 
 | File name patterns | Language Id |
 |--------------------|-------------|
 | `*.logo`           | `logo`      |
-
-> [!NOTE]
-> The plugin does not use the java version configured for the project in IntelliJ.
-> You might need to set the JAVA_HOME environment variable to the JDK used by IntelliJ.
 
 ## :building_construction: Architecture
 The server is implemented using the [lsp4j](https://github.com/eclipse/lsp4j) and [antlr-kotlin](https://github.com/Strumenta/antlr-kotlin) library.

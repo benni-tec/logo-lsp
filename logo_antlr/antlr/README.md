@@ -1,4 +1,5 @@
-Sourced from the [grammars-v4](https://github.com/antlr/grammars-v4/tree/master/logo) project.
+> [!NOTE]
+> Sourced from the [grammars-v4](https://github.com/antlr/grammars-v4/tree/master/logo) project under the BSD license at the start of the [logo.g4](./logo.g4) file. 
 
 # Logo Grammar
 
@@ -8,4 +9,3 @@ Examples are based on the tutorial [here](http://cs.brown.edu/courses/bridge/199
 
 ## Reference
 * [pldb](http://pldb.info/concepts/logo)
-
