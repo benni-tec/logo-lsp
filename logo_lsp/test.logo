@@ -1,0 +1,10 @@
+forward 1000
+fd 1000 ; kommentar
+
+abc 100
+
+to df :distance
+fd :distance
+end
+
+df 500 ; kommentar
