@@ -1,8 +1,16 @@
 package de.benni_tec.logo_lsp.services.analysis
 
+import de.benni_tec.logo_antlr.logoParser
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.Range
 import org.eclipse.lsp4j.jsonrpc.messages.Either
+
+data class ProcDeclaration(
+    val name: String,
+    val params: Int,
+    val position: Range?,
+    val body: logoParser.ProcedureDeclarationContext
+)
 
 data class ProcInvocation(
     val name: String,

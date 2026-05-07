@@ -3,6 +3,7 @@ package de.benni_tec.logo_lsp
 import de.benni_tec.logo_lsp.services.highlight.SemanticToken
 import org.eclipse.lsp4j.InitializeParams
 import org.eclipse.lsp4j.InitializeResult
+import org.eclipse.lsp4j.ReferenceOptions
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions
 import org.eclipse.lsp4j.ServerCapabilities
 import org.eclipse.lsp4j.TextDocumentSyncKind
@@ -26,11 +27,15 @@ class LogoLanguageServer : LanguageServer, LanguageClientAware {
     override fun initialize(params: InitializeParams?): CompletableFuture<InitializeResult?>? {
         return CompletableFutures.computeAsync<InitializeResult>({
             val caps = ServerCapabilities().apply {
-                this.textDocumentSync = Either.forLeft(TextDocumentSyncKind.Full)
-                this.semanticTokensProvider = SemanticTokensWithRegistrationOptions().apply {
+                textDocumentSync = Either.forLeft(TextDocumentSyncKind.Full)
+                semanticTokensProvider = SemanticTokensWithRegistrationOptions().apply {
                     legend = SemanticToken.legend()
                     full = Either.forLeft(true)
                 }
+                referencesProvider = Either.forLeft(true)
+                declarationProvider = Either.forLeft(true)
+                definitionProvider = Either.forLeft(true)
+                implementationProvider = Either.forLeft(true)
             }
 
             InitializeResult(caps)

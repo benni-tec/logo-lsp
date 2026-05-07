@@ -8,3 +8,10 @@ fd :distance
 end
 
 df 500 ; kommentar
+
+make "var 15
+fd :var
+
+make "var 100
+
+bk :var

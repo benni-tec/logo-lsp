@@ -2,7 +2,8 @@ package de.benni_tec.logo_lsp.services
 
 import de.benni_tec.logo_antlr.logoLexer
 import de.benni_tec.logo_antlr.logoParser
-import de.benni_tec.logo_lsp.services.analysis.LogoValidator
+import de.benni_tec.logo_lsp.services.analysis.LogoAnalysisVisitor
+import de.benni_tec.logo_lsp.services.analysis.PositionMapping
 import org.antlr.v4.kotlinruntime.*
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
@@ -10,7 +11,7 @@ import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
 class Analyzer {
-    fun analyze(document: String): List<Diagnostic> {
+    fun analyze(document: String): AnalysisResult {
         val diagnostics = mutableListOf<Diagnostic>()
 
         val input = CharStreams.fromString(document)
@@ -29,11 +30,34 @@ class Analyzer {
         val prog = parser.prog()
 
         // only run semantic analysis if there are no syntax errors
-        if (diagnostics.isEmpty()) {
-            diagnostics.addAll(LogoValidator.analyze(prog))
+        if (diagnostics.isNotEmpty()) {
+            return AnalysisResult(diagnostics, PositionMapping(), PositionMapping())
         }
 
-        return diagnostics
+        val analysis = LogoAnalysisVisitor().analyze(prog)
+        return AnalysisResult(
+            analysis.diagnostics + diagnostics,
+            analysis.procedureMapping,
+            analysis.variableMapping,
+        )
+    }
+}
+
+data class AnalysisResult(
+    val diagnostics: List<Diagnostic>,
+    val procedureMapping: PositionMapping,
+    val variableMapping: PositionMapping,
+) {
+    fun findUsages(position: Position): List<Range> {
+        return procedureMapping.findUsages(position) + variableMapping.findUsages(position)
+    }
+
+    fun findDeclarations(position: Position): List<Range> {
+        return procedureMapping.findDeclarations(position) + variableMapping.findDeclarations(position)
+    }
+
+    fun findDefinitions(position: Position): List<Range> {
+        return procedureMapping.findDefinitions(position) + variableMapping.findDefinitions(position)
     }
 }
 
