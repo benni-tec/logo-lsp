@@ -45,6 +45,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         val diags = mutableListOf<Diagnostic>()
 
         val name = ctx.name().text
+        val params = ctx.parameterDeclarations().flatten()
 
         val frame = frames.peek()
         val procDeclarations = frame.procDeclarations
@@ -57,13 +58,13 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         } else {
             procDeclarations[name] = ProcDeclaration(
                 name,
-                ctx.parameterDeclarations().size,
+                params.size,
                 range(ctx),
                 ctx
             )
         }
 
-        for (param in ctx.parameterDeclarations()) {
+        for (param in params) {
             val paramName = param.name().text
             frame.varDeclarations[paramName] = VarDeclaration(paramName, range(param))
             frame.varDefinitions[paramName] = VarDefinition(paramName, range(param))
@@ -81,12 +82,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         val name = ctx.name().text
         val position = range(ctx.name())
 
-        var decl: ProcDeclaration? = null
-        for (frame in frames) {
-            decl = frame.procDeclarations[name]
-            if (decl != null) break
-        }
-
+        val decl = frames.findProcDeclaration(name)
         if (decl == null) {
             diags += Diagnostic().apply {
                 message = Either.forLeft("Procedure ${name} not defined")
@@ -106,8 +102,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
             }
         }
 
-        diags += super.visitProcedureInvocation(ctx)
-        return diags
+        return diags + super.visitProcedureInvocation(ctx)
     }
 
     override fun visitMake(ctx: logoParser.MakeContext): List<Diagnostic> {
@@ -127,8 +122,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         val varName = ctx.name().text
         val varRange = range(ctx)!!
 
-        val frame = frames.peek()
-        val decl = frame.varDeclarations[varName]
+        val decl = frames.findVarDeclaration(varName)
         if (decl == null) {
             diags += Diagnostic().apply {
                 message = Either.forLeft("Variable $varName not declared")
@@ -139,7 +133,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
             variablesUsageToDecl.add(varRange, decl.position)
             variablesDeclToUsage.add(decl.position, varRange)
 
-            val def = frame.varDefinitions[varName]
+            val def = frames.findVarDefinition(varName)
             if (def == null) {
                 diags += Diagnostic().apply {
                     message = Either.forLeft("Variable $varName not defined")
@@ -152,7 +146,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
             }
         }
 
-        return super.visitDeref(ctx)
+        return diags + super.visitDeref(ctx)
     }
 
     fun <K, V> MutableMap<K, MutableList<V>>.add(key: K, value: V) {
@@ -166,5 +160,28 @@ private data class Frame(
 
     val varDeclarations: MutableMap<String, VarDeclaration> = mutableMapOf(),
     val varDefinitions: MutableMap<String, VarDefinition> = mutableMapOf(),
-);
+)
 
+private fun Iterable<Frame>.findProcDeclaration(name: String): ProcDeclaration? {
+    return this.firstNotNullOfOrNull { it.procDeclarations[name] }
+}
+
+private fun Iterable<Frame>.findVarDeclaration(name: String): VarDeclaration? {
+    return this.firstNotNullOfOrNull { it.varDeclarations[name] }
+}
+
+private fun Iterable<Frame>.findVarDefinition(name: String): VarDefinition? {
+    return this.firstNotNullOfOrNull { it.varDefinitions[name] }
+}
+
+fun List<logoParser.ParameterDeclarationsContext>.flatten(): List<logoParser.ParameterDeclarationsContext> {
+    return this.flatMap { it.flatten() }
+}
+
+fun logoParser.ParameterDeclarationsContext.flatten(): List<logoParser.ParameterDeclarationsContext> {
+    val result = mutableListOf<logoParser.ParameterDeclarationsContext>(this)
+    for (param in this.parameterDeclarations()) {
+        result += param.flatten()
+    }
+    return result
+}

@@ -9,6 +9,8 @@ end
 
 df 500 ; kommentar
 
+fd :var
+
 make "var 15
 fd :var
 
