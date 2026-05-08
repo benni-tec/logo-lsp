@@ -3,6 +3,9 @@ package de.benni_tec.logo_lsp.services.analysis
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
+/**
+ * Maps lsp positions for usages, declarations, and definitions, to the corresponding ranges in the Logo source code.
+ * */
 data class PositionMapping(
     private val declToUsage: Map<Range, List<Range>> = mapOf(),
     private val usageToDecl: Map<Range, List<Range>> = mapOf(),

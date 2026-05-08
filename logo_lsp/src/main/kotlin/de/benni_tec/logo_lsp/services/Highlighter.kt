@@ -18,6 +18,7 @@ class Highlighter {
         val tokens = CommonTokenStream(lexer)
         val parser = logoParser(tokens)
 
+        // generate a semantic token for each token
         val lexerTokens = mutableListOf<SemanticToken>()
         while (true) {
             val token = lexer.nextToken()
@@ -27,6 +28,7 @@ class Highlighter {
             if (semantic != null) lexerTokens.add(semantic)
         }
 
+        // generate semantic tokens based on the AST
         val semanticTokens = lexerTokens + SemanticTokenVisitor().visit(parser.prog())
         return SemanticTokens(semanticTokens.encode(document))
     }

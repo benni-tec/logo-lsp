@@ -17,6 +17,9 @@ data class ProcInvocation(
     val position: Range,
     val args: Int
 ) {
+    /**
+     * Checks if the procedure invocation is valid with respect to the procedure declaration.
+     * */
     fun validate(declaration: ProcDeclaration): List<Diagnostic> {
         val diags = mutableListOf<Diagnostic>()
 

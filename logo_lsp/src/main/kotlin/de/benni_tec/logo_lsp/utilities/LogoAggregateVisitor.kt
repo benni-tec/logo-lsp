@@ -7,6 +7,10 @@ import org.antlr.v4.kotlinruntime.ast.Point
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
+/**
+ * Base class for Logo visitors that aggregate results into lists.
+ * It also provides some helper methods to get the lsp ranges from antlr tokens and rules.
+ * */
 open class LogoAggregateVisitor<T> : logoBaseVisitor<List<T>>() {
     override fun aggregateResult(aggregate: List<T>, nextResult: List<T>): List<T> {
         return aggregate + nextResult

@@ -11,8 +11,3 @@ data class VarDefinition(
     val name: String,
     val position: Range?
 )
-
-data class VarUsage(
-    val name: String,
-    val position: Range
-)

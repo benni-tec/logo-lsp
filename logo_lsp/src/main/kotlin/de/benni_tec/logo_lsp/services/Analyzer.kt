@@ -14,6 +14,7 @@ class Analyzer {
     fun analyze(document: String): AnalysisResult {
         val diagnostics = mutableListOf<Diagnostic>()
 
+        // find syntax errors from lexing and parsing
         val input = CharStreams.fromString(document)
         val lexer = logoLexer(input)
 

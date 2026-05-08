@@ -35,12 +35,17 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
     }
 
     override fun visitProg(ctx: logoParser.ProgContext): List<Diagnostic> {
+        // add the initial frame
         frames.push(Frame())
         val diags = super.visitProg(ctx)
         frames.pop()
         return diags
     }
 
+    /**
+     * Gathers all procedure declarations and their parameters.
+     * Adds a frame for the procedure body.
+     * */
     override fun visitProcedureDeclaration(ctx: logoParser.ProcedureDeclarationContext): List<Diagnostic> {
         val diags = mutableListOf<Diagnostic>()
 
@@ -59,23 +64,28 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
             procDeclarations[name] = ProcDeclaration(
                 name,
                 params.size,
-                range(ctx),
+                range(ctx.name()),
                 ctx
             )
         }
 
+        // add the parameters as variables within the procedure body
+        val procFrame = Frame()
         for (param in params) {
             val paramName = param.name().text
-            frame.varDeclarations[paramName] = VarDeclaration(paramName, range(param))
-            frame.varDefinitions[paramName] = VarDefinition(paramName, range(param))
+            procFrame.varDeclarations[paramName] = VarDeclaration(paramName, range(param))
+            procFrame.varDefinitions[paramName] = VarDefinition(paramName, range(param))
         }
 
-        frames.push(Frame())
+        frames.push(procFrame)
         diags += super.visitProcedureDeclaration(ctx)
         frames.pop()
         return diags
     }
 
+    /**
+     * Validates the procedure invocation against the procedure declaration.
+     * */
     override fun visitProcedureInvocation(ctx: logoParser.ProcedureInvocationContext): List<Diagnostic> {
         val diags = mutableListOf<Diagnostic>()
 
@@ -105,6 +115,9 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         return diags + super.visitProcedureInvocation(ctx)
     }
 
+    /**
+     * Gathers all variable declarations.
+     * */
     override fun visitMake(ctx: logoParser.MakeContext): List<Diagnostic> {
         val varName = ctx.STRINGLITERAL().text.trimStart('"')
         val varRange = range(ctx.STRINGLITERAL().symbol)
@@ -116,12 +129,16 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
         return super.visitMake(ctx)
     }
 
+    /**
+     * Validates the variable dereference against the variable declaration.
+     * */
     override fun visitDeref(ctx: logoParser.DerefContext): List<Diagnostic> {
         val diags = mutableListOf<Diagnostic>()
 
         val varName = ctx.name().text
         val varRange = range(ctx)!!
 
+        // check if the variable is declared
         val decl = frames.findVarDeclaration(varName)
         if (decl == null) {
             diags += Diagnostic().apply {
@@ -133,6 +150,7 @@ class LogoAnalysisVisitor : LogoAggregateVisitor<Diagnostic>() {
             variablesUsageToDecl.add(varRange, decl.position)
             variablesDeclToUsage.add(decl.position, varRange)
 
+            // check where the last definition of the variable is
             val def = frames.findVarDefinition(varName)
             if (def == null) {
                 diags += Diagnostic().apply {

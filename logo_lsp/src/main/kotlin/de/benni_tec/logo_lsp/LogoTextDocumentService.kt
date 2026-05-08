@@ -41,6 +41,7 @@ class LogoTextDocumentService(
         receivedDocument(params.textDocument.uri, params.contentChanges[0].text)
     }
 
+    /** Analyzes the given document, publishes diagnostics and updates the document state. */
     fun receivedDocument(uri: String, text: String) {
         val analysis = analyzer.analyze(text)
         server.client.publishDiagnostics(PublishDiagnosticsParams(uri, analysis.diagnostics))
@@ -65,11 +66,11 @@ class LogoTextDocumentService(
     override fun implementation(params: ImplementationParams?): CompletableFuture<Either<List<Location?>?, List<LocationLink?>?>?>? {
         return CompletableFutures.computeAsync<Either<List<Location?>?, List<LocationLink?>?>>({
             if (params == null) return@computeAsync null
+            // For LOGO everything is in the same file and the implementation always follows the declaration, so we can use the same function
             findDeclaration(params.textDocument.uri, params.position)
         })
     }
 
-    /// For LOGO everything is in the same file and the implementation always follows the declaration
     private fun findDeclaration(uri: String, position: Position): Either<List<Location?>?, List<LocationLink?>?>? {
         val document = documents[uri] ?: return null
         val links = document.analysis.findDeclarations(position)

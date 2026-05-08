@@ -36,6 +36,9 @@ data class SemanticToken(
             )
         }
 
+        /**
+         * Returns a semantic token for the given lexical token if one is available.
+         * */
         fun from(token: Token): SemanticToken? {
             val range = Range(
                 Position(token.line - 1, token.charPositionInLine),
@@ -94,6 +97,9 @@ data class SemanticToken(
             }
         }
 
+        /**
+         * Encodes the given semantic tokens into a list of integers, as specified by the LSP.
+         * */
         fun Iterable<SemanticToken>.encode(document: String): List<Int> {
             // do not use lines, so we include \r in the length calculation
             val lines = document.lines()
